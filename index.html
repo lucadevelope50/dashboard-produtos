@@ -335,11 +335,14 @@ function moverParaAchado(index) {
 async function salvar() {
   await fetch(API_URL, {
     method: 'POST',
+    mode: 'no-cors',
     body: JSON.stringify({ perdidos, achados })
   });
-  render();
-  criarGraficos();
+
+  // NÃO chama render aqui
+  // os dados já estão na memória
 }
+
   
 async function carregarDados() {
   const r = await fetch(API_URL);
