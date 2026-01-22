@@ -356,27 +356,6 @@ function moverParaAchado(index) {
 
 /* ================= RENDER / SALVAR ================= */
 
-async function salvar() {
-  await fetch(API_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    body: JSON.stringify({ perdidos, achados })
-  });
-
-  // NÃO chama render aqui
-  // os dados já estão na memória
-}
-
-  
-async function carregarDados() {
-  const r = await fetch(API_URL);
-  const data = await r.json();
-  perdidos = data.perdidos || [];
-  achados = data.achados || [];
-  render();
-  criarGraficos();
-}
-
 
 function render() {
   const tbP = document.querySelector('#tabelaPerdidos tbody');
@@ -531,41 +510,6 @@ function copiarRelatorio() {
   navigator.clipboard.writeText(texto);
   alert('Relatório copiado! Cole direto no WhatsApp ✅');
 }
-
-
-function adicionarProduto(tipo) {
-  const nome = document.getElementById('nome').value.trim();
-  const local = document.getElementById('local').value.trim();
-  const data = document.getElementById('data').value;
-  const descricao = document.getElementById('descricao').value.trim();
-
-  if (!nome) {
-    alert('Informe o nome do produto');
-    return;
-  }
-
-  const produto = {
-    nome,
-    local,
-    data,
-    descricao
-  };
-
-  if (tipo === 'perdido') {
-    perdidos.push(produto);
-  } else {
-    achados.push(produto);
-  }
-
-  salvar();
-
-  // limpa formulário
-  document.getElementById('nome').value = '';
-  document.getElementById('local').value = '';
-  document.getElementById('data').value = '';
-  document.getElementById('descricao').value = '';
-}
-
 
 function copiarRelatorioPeriodo() {
   const ini = document.getElementById('dataInicio').value;
