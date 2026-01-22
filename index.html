@@ -254,6 +254,9 @@ async function salvar() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ perdidos, achados })
   });
+
+  render();
+  criarGraficos();
 }
 
 
