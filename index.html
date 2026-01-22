@@ -532,6 +532,41 @@ function copiarRelatorio() {
   alert('Relatório copiado! Cole direto no WhatsApp ✅');
 }
 
+
+function adicionarProduto(tipo) {
+  const nome = document.getElementById('nome').value.trim();
+  const local = document.getElementById('local').value.trim();
+  const data = document.getElementById('data').value;
+  const descricao = document.getElementById('descricao').value.trim();
+
+  if (!nome) {
+    alert('Informe o nome do produto');
+    return;
+  }
+
+  const produto = {
+    nome,
+    local,
+    data,
+    descricao
+  };
+
+  if (tipo === 'perdido') {
+    perdidos.push(produto);
+  } else {
+    achados.push(produto);
+  }
+
+  salvar();
+
+  // limpa formulário
+  document.getElementById('nome').value = '';
+  document.getElementById('local').value = '';
+  document.getElementById('data').value = '';
+  document.getElementById('descricao').value = '';
+}
+
+
 function copiarRelatorioPeriodo() {
   const ini = document.getElementById('dataInicio').value;
   const fim = document.getElementById('dataFim').value;
@@ -688,3 +723,4 @@ carregarDados();
 
 </body>
 </html>
+
