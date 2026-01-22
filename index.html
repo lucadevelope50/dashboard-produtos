@@ -206,6 +206,11 @@
 </div>
 
 <script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbyn2stjc_MuuweDrq53mUC0cMA6LKTH37Yx-PwiD7GLIvgGHpVekK5GkCqiU1wSQhZ7/exec";
+
+
+
 /* ================= DARK MODE ================= */
 function alternarTema() {
   document.body.classList.toggle('dark');
@@ -220,8 +225,8 @@ window.onload = function () {
 
 /* ================= DADOS ================= */
 let produtosBase = [];
-let perdidos = JSON.parse(localStorage.getItem('perdidos') || '[]');
-let achados = JSON.parse(localStorage.getItem('achados') || '[]');
+let perdidos = [];
+let achados = [];
 let graficoDias = null;
 
 function parseValorBR(valor) {
@@ -326,12 +331,25 @@ function moverParaAchado(index) {
 }
 
 /* ================= RENDER / SALVAR ================= */
-function salvar() {
-  localStorage.setItem('perdidos', JSON.stringify(perdidos));
-  localStorage.setItem('achados', JSON.stringify(achados));
+
+async function salvar() {
+  await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ perdidos, achados })
+  });
   render();
   criarGraficos();
 }
+  
+async function carregarDados() {
+  const r = await fetch(API_URL);
+  const data = await r.json();
+  perdidos = data.perdidos || [];
+  achados = data.achados || [];
+  render();
+  criarGraficos();
+}
+
 
 function render() {
   const tbP = document.querySelector('#tabelaPerdidos tbody');
@@ -638,8 +656,7 @@ async function gerarPDFPeriodo() {
 }
 
 
-render();
-criarGraficos();
+carregarDados();
 </script>
 
 </body>
