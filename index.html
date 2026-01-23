@@ -140,9 +140,154 @@
     th { background: rgba(0,0,0,.03); color: var(--muted); }
 
     tbody tr:hover { background: rgba(0,0,0,.04); }
-  </style>
+  
+ 
+
+@media (max-width: 768px) {
+
+  table {
+    table-layout: auto;
+  }
+
+  table thead {
+    display: none;
+  }
+
+  table,
+  tbody,
+  tr,
+  td {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  table tr {
+    background: var(--card);
+    margin-bottom: 14px;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  table td {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    border: none;
+    font-size: 14px;
+    word-break: break-word;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  table td span,
+  table td div {
+    max-width: 100%;
+  }
+
+  /* ===== AÇÕES ===== */
+  table td[data-label="Ações"] {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  table td[data-label="Ações"]::before {
+    margin-bottom: 4px;
+  }
+
+  table td[data-label="Ações"] button {
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    font-size: 14px;
+    white-space: normal;
+    line-height: 1.2;
+  }
+}
+
+body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+
+  .container {
+    padding: 16px 12px;
+  }
+
+  table tr {
+    margin-left: 2px;
+    margin-right: 2px;
+  }
+
+  table td {
+    overflow-wrap: anywhere;
+  }
+
+}
+
+
+
+</style>
 </head>
 <body>
+ 
+
+/* senha */ 
+
+<div id="loginScreen" style="
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1f2937, #111827);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+">
+
+  <div style="
+    background: #fff;
+    padding: 32px;
+    border-radius: 16px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,.3);
+  ">
+    <h2 style="margin-bottom: 16px;">🔐 Acesso ao Sistema</h2>
+
+    <input 
+      type="password" 
+      id="senhaInput" 
+      placeholder="Digite a senha"
+      style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc;"
+    >
+
+    <button 
+      onclick="login()" 
+      style="margin-top:16px; width:100%; padding:12px; border:none; border-radius:8px; background:#2563eb; color:#fff; font-size:15px; cursor:pointer;">
+      Entrar
+    </button>
+
+    <p id="erroLogin" style="color:#dc2626; margin-top:12px; display:none;">
+      Senha incorreta
+    </p>
+  </div>
+
+</div>
+
+
+
 
 <header>
   <h1>📦 Dashboard – Produtos Perdidos e Achados</h1>
@@ -163,7 +308,25 @@
     <canvas id="graficoDias" height="120"></canvas>
   </div>
 
-  <div class="box">
+<div class="box">
+  <h3>🔍 Filtro de Data para Gráfico</h3>
+  
+  <label for="filtroPeriodo">Escolha o Período</label>
+  <select id="filtroPeriodo">
+    <option value="data">Data Específica</option>
+    <option value="semana">Semana</option>
+    <option value="mes">Mês</option>
+  </select>
+
+  <label for="filtroDataGrafico">Data</label>
+  <input type="date" id="filtroDataGrafico">
+
+  <button onclick="aplicarFiltroGrafico()">Aplicar Filtro</button>
+</div>
+
+
+
+<div class="box">
     <h3>1️⃣ Importar Planilha de Produtos (.xlsx)</h3>
     <input type="file" id="fileProdutos" accept=".xlsx">
   </div>
@@ -199,15 +362,48 @@
 
 </div>
 
-  <div class="box">
+ <div class="box">
+  <h3>🔍 Filtro de Pesquisa</h3>
+  <label for="filtroCodigo">Código</label>
+  <input type="text" id="filtroCodigo" placeholder="Digite o código">
+
+  <label for="filtroDescricao">Descrição</label>
+  <input type="text" id="filtroDescricao" placeholder="Digite a descrição">
+
+  <label for="filtroQuantidade">Quantidade</label>
+  <input type="number" id="filtroQuantidade" placeholder="Quantidade" min="1">
+
+  <label for="filtroData">Data da Perda</label>
+  <input type="date" id="filtroData">
+
+  <button onclick="aplicarFiltro()">Aplicar Filtro</button>
+<button onclick="limparFiltro()">Limpar Filtro</button>
+
+
+</div>
+
+<div class="box">
     <h3>Produtos Perdidos</h3>
     <table id="tabelaPerdidos"><thead><tr><th>Código</th><th>Descrição</th><th>Qtd</th><th>Valor Unit.</th><th>Total</th><th>Ações</th></tr></thead><tbody></tbody></table>
   </div>
 
-  <div class="box">
+  <div style="margin-top:10px;">
+  <button onclick="perdidosAnterior()">⬅</button>
+  <span id="infoPerdidos"></span>
+  <button onclick="perdidosProxima()">➡</button>
+</div>
+
+<div class="box">
     <h3>Produtos Achados</h3>
     <table id="tabelaAchados"><thead><tr><th>Código</th><th>Descrição</th><th>Qtd</th><th>Valor Unit.</th><th>Total</th><th>Ações</th></tr></thead><tbody></tbody></table>
   </div>
+
+<div style="margin-top:10px;">
+  <button onclick="achadosAnterior()">⬅</button>
+  <span id="infoAchados"></span>
+  <button onclick="achadosProxima()">➡</button>
+</div>
+
 
   <div class="box">
     <h3>📤 Exportações e Relatórios</h3>
@@ -231,6 +427,70 @@
 
 const API_URL = "https://api-produtos-fbb4.onrender.com/dados";
 
+function login() {
+  const senha = document.getElementById('senhaInput').value;
+
+  if (senha === SENHA_SISTEMA) {
+    localStorage.setItem('logado', 'true');
+    document.getElementById('loginScreen').style.display = 'none';
+  } else {
+    document.getElementById('erroLogin').style.display = 'block';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('logado');
+  location.reload();
+}
+
+window.addEventListener('load', () => {
+  if (localStorage.getItem('logado') === 'true') {
+    document.getElementById('loginScreen').style.display = 'none';
+  }
+});
+
+
+/* bloqueia click do mause */ 
+
+/* bloqueia F12 */
+
+document.addEventListener('keydown', function (e) {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) ||
+    (e.ctrlKey && e.key === "U")
+  ) {
+    e.preventDefault();
+  }
+});
+
+
+document.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+});
+
+
+
+function exportarPerdidos() {
+  if (!perdidos.length) {
+    alert('Não há produtos perdidos');
+    return;
+  }
+
+  const dados = perdidos.map(p => ({
+    'Data Perdido': p.data,
+    Código: p.codigo,
+    Descrição: p.descricao,
+    Quantidade: p.quantidade,
+    'Valor Unitário': p.valorUnitario,
+    'Valor Total': p.valorTotal
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Perdidos');
+  XLSX.writeFile(wb, 'produtos_perdidos.xlsx');
+}
 
 
 /* ================= DARK MODE ================= */
@@ -376,51 +636,120 @@ function moverParaAchado(index) {
   salvar();
 }
 
+
+
+const SENHA_SISTEMA = "120518"; // 🔐 troque pela senha desejada
+
+
+
+
+
 /* ================= RENDER / SALVAR ================= */
+
+
+
+let valorPerdidoTotal = 0;
+let valorAchadoTotal = 0;
+
+perdidos.forEach(p => {
+  valorPerdidoTotal += Number(p.valorTotal) || 0;
+});
+
+achados.forEach(a => {
+  valorAchadoTotal += Number(a.valorTotal) || 0;
+});
 
 
 function render() {
   const tbP = document.querySelector('#tabelaPerdidos tbody');
   const tbA = document.querySelector('#tabelaAchados tbody');
+
   tbP.innerHTML = '';
   tbA.innerHTML = '';
 
-  let valorPerdido = 0;
-  let valorAchado = 0;
+  const inicioP = (paginaPerdidos - 1) * itensPorPagina;
+  const fimP = inicioP + itensPorPagina;
 
-  perdidos.forEach((p, i) => {
-    valorPerdido += p.valorTotal;
+  perdidos.slice(inicioP, fimP).forEach((p, i) => {
     tbP.innerHTML += `<tr>
-      <td>${p.codigo}</td>
-      <td>${p.descricao}</td>
-      <td>${p.quantidade}</td>
-      <td>${p.valorUnitario.toFixed(2)}</td>
-      <td>${p.valorTotal.toFixed(2)}</td>
-      <td>
-        <button onclick="editarItem(${i})">Editar</button>
-        <button class="green" onclick="moverParaAchado(${i})">Achado</button>
-        <button class="red" onclick="excluirPerdido(${i})">Excluir</button>
+      <td data-label="Código">${p.codigo}</td>
+      <td data-label="Descrição">${p.descricao}</td>
+      <td data-label="Qtd">${p.quantidade}</td>
+      <td data-label="Valor Unit.">R$ ${p.valorUnitario.toFixed(2)}</td>
+      <td data-label="Total">R$ ${p.valorTotal.toFixed(2)}</td>
+      <td data-label="Ações">
+        <button onclick="editarItem(${inicioP + i})">✏️ Editar</button>
+        <button class="green" onclick="moverParaAchado(${inicioP + i})">✅ Achado</button>
+        <button class="red" onclick="excluirPerdido(${inicioP + i})">🗑 Excluir</button>
       </td>
     </tr>`;
   });
 
-  achados.forEach((a, i) => {
-    valorAchado += a.valorTotal;
+  document.getElementById('infoPerdidos').textContent =
+    `Página ${paginaPerdidos} de ${Math.ceil(perdidos.length / itensPorPagina) || 1}`;
+
+  const inicioA = (paginaAchados - 1) * itensPorPagina;
+  const fimA = inicioA + itensPorPagina;
+
+  achados.slice(inicioA, fimA).forEach((a, i) => {
     tbA.innerHTML += `<tr>
-      <td>${a.codigo}</td>
-      <td>${a.descricao}</td>
-      <td>${a.quantidade}</td>
-      <td>${a.valorUnitario.toFixed(2)}</td>
-      <td>${a.valorTotal.toFixed(2)}</td>
-      <td><button class="red" onclick="excluirAchado(${i})">Excluir</button></td>
+      <td data-label="Código">${a.codigo}</td>
+      <td data-label="Descrição">${a.descricao}</td>
+      <td data-label="Qtd">${a.quantidade}</td>
+      <td data-label="Valor Unit.">R$ ${a.valorUnitario.toFixed(2)}</td>
+      <td data-label="Total">R$ ${a.valorTotal.toFixed(2)}</td>
+      <td data-label="Ações">
+        <button class="red" onclick="excluirAchado(${inicioA + i})">🗑 Excluir</button>
+      </td>
     </tr>`;
   });
 
+  document.getElementById('infoAchados').textContent =
+    `Página ${paginaAchados} de ${Math.ceil(achados.length / itensPorPagina) || 1}`;
+
   document.getElementById('kpiPerdidos').textContent = perdidos.length;
   document.getElementById('kpiAchados').textContent = achados.length;
-  document.getElementById('kpiValorPerdido').textContent = valorPerdido.toFixed(2);
-  document.getElementById('kpiValorAchado').textContent = valorAchado.toFixed(2);
+
+  document.getElementById('kpiValorPerdido').textContent =
+    perdidos.reduce((s, p) => s + p.valorTotal, 0).toFixed(2);
+
+  document.getElementById('kpiValorAchado').textContent =
+    achados.reduce((s, a) => s + a.valorTotal, 0).toFixed(2);
 }
+
+
+
+function perdidosProxima() {
+  if (paginaPerdidos < Math.ceil(perdidos.length / itensPorPagina)) {
+    paginaPerdidos++;
+    render();
+  }
+}
+
+function perdidosAnterior() {
+  if (paginaPerdidos > 1) {
+    paginaPerdidos--;
+    render();
+  }
+}
+
+function achadosProxima() {
+  if (paginaAchados < Math.ceil(achados.length / itensPorPagina)) {
+    paginaAchados++;
+    render();
+  }
+}
+
+function achadosAnterior() {
+  if (paginaAchados > 1) {
+    paginaAchados--;
+    render();
+  }
+}
+
+
+
+
 
 /* ================= GRÁFICO ================= */
 function criarGraficos() {
@@ -453,24 +782,167 @@ function criarGraficos() {
   });
 }
 
-/* ================= EXPORTAÇÃO ================= */
-function exportarPerdidos() {
-  if (!perdidos.length) return alert('Não há produtos perdidos');
 
-  const dados = perdidos.map(p => ({
-    Data: p.data,
-    Código: p.codigo,
-    Descrição: p.descricao,
-    Quantidade: p.quantidade,
-    'Valor Unitário': p.valorUnitario,
-    'Valor Total': p.valorTotal
-  }));
+/* busca de produto */ 
 
-  const ws = XLSX.utils.json_to_sheet(dados);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Perdidos');
-  XLSX.writeFile(wb, 'produtos_perdidos.xlsx');
+
+function aplicarFiltro() {
+  // Obter os valores dos filtros
+  const codigo = document.getElementById('filtroCodigo').value.toLowerCase();
+  const descricao = document.getElementById('filtroDescricao').value.toLowerCase();
+  const quantidade = Number(document.getElementById('filtroQuantidade').value) || 0;
+  const data = document.getElementById('filtroData').value;
+
+  // Filtrar produtos perdidos
+  const produtosFiltradosPerdidos = perdidos.filter(p => {
+    const correspondeCodigo = p.codigo.toLowerCase().includes(codigo);
+    const correspondeDescricao = p.descricao.toLowerCase().includes(descricao);
+    const correspondeQuantidade = p.quantidade >= quantidade;
+    const correspondeData = data ? p.data === data : true;
+
+    return correspondeCodigo && correspondeDescricao && correspondeQuantidade && correspondeData;
+  });
+
+  // Filtrar produtos achados
+  const produtosFiltradosAchados = achados.filter(a => {
+    const correspondeCodigo = a.codigo.toLowerCase().includes(codigo);
+    const correspondeDescricao = a.descricao.toLowerCase().includes(descricao);
+    const correspondeQuantidade = a.quantidade >= quantidade;
+    const correspondeData = data ? a.dataAchado === data : true;
+
+    return correspondeCodigo && correspondeDescricao && correspondeQuantidade && correspondeData;
+  });
+
+  // Re-renderizar as tabelas com os produtos filtrados
+  renderTabela(produtosFiltradosPerdidos, 'Perdidos');
+  renderTabela(produtosFiltradosAchados, 'Achados');
 }
+
+function renderTabela(produtos, tipo) {
+  const tabela = tipo === 'Perdidos' ? document.querySelector('#tabelaPerdidos tbody') : document.querySelector('#tabelaAchados tbody');
+  tabela.innerHTML = '';
+
+  produtos.forEach((p, i) => {
+    const linha = tipo === 'Perdidos' 
+      ? `<tr>
+          <td data-label="Código">${p.codigo}</td>
+          <td data-label="Descrição">${p.descricao}</td>
+          <td data-label="Qtd">${p.quantidade}</td>
+          <td data-label="Valor Unit.">R$ ${p.valorUnitario.toFixed(2)}</td>
+          <td data-label="Total">R$ ${p.valorTotal.toFixed(2)}</td>
+          <td data-label="Ações">
+            <button onclick="editarItem(${i}, 'Perdidos')">✏️ Editar</button>
+            <button class="green" onclick="moverParaAchado(${i})">✅ Achado</button>
+            <button class="red" onclick="excluirPerdido(${i})">🗑 Excluir</button>
+          </td>
+        </tr>`
+      : `<tr>
+          <td data-label="Código">${p.codigo}</td>
+          <td data-label="Descrição">${p.descricao}</td>
+          <td data-label="Qtd">${p.quantidade}</td>
+          <td data-label="Valor Unit.">R$ ${p.valorUnitario.toFixed(2)}</td>
+          <td data-label="Total">R$ ${p.valorTotal.toFixed(2)}</td>
+          <td data-label="Ações">
+            <button class="red" onclick="excluirAchado(${i})">🗑 Excluir</button>
+          </td>
+        </tr>`;
+
+    tabela.innerHTML += linha;
+  });
+}
+
+function limparFiltro() {
+  document.getElementById('filtroCodigo').value = '';
+  document.getElementById('filtroDescricao').value = '';
+  document.getElementById('filtroQuantidade').value = '';
+  document.getElementById('filtroData').value = '';
+  aplicarFiltro(); // Reaplica os filtros (agora sem nenhum filtro ativo)
+}
+
+
+
+
+/* ================= EXPORTAÇÃO ================= */
+
+function criarGraficos() {
+  const mapaDias = {};
+
+  // 🔴 TODOS os perdidos (TOTAL GERAL)
+  perdidos.forEach(p => {
+    if (!p.data) return;
+
+    const data = p.data; // já vem yyyy-mm-dd
+
+    if (!mapaDias[data]) {
+      mapaDias[data] = { perdidos: 0, recuperados: 0 };
+    }
+
+    mapaDias[data].perdidos += Number(p.valorTotal) || 0;
+  });
+
+  // 🟢 TODOS os achados (TOTAL GERAL)
+  achados.forEach(a => {
+    if (!a.dataAchado) return;
+
+    const data = a.dataAchado;
+
+    if (!mapaDias[data]) {
+      mapaDias[data] = { perdidos: 0, recuperados: 0 };
+    }
+
+    mapaDias[data].recuperados += Number(a.valorTotal) || 0;
+  });
+
+  // Ordena datas corretamente
+  const datas = Object.keys(mapaDias).sort(
+    (a, b) => new Date(a) - new Date(b)
+  );
+
+  // Destrói gráfico anterior
+  if (graficoDias) graficoDias.destroy();
+
+  graficoDias = new Chart(document.getElementById('graficoDias'), {
+    type: 'line',
+    data: {
+      labels: datas,
+      datasets: [
+        {
+          label: '🔴 Perdidos (R$)',
+          data: datas.map(d => mapaDias[d].perdidos),
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220,38,38,0.15)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: '🟢 Recuperados (R$)',
+          data: datas.map(d => mapaDias[d].recuperados),
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22,163,74,0.15)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx =>
+              `${ctx.dataset.label}: R$ ${ctx.parsed.y.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+
 
 function exportarAchados() {
   if (!achados.length) return alert('Não há produtos achados');
@@ -716,6 +1188,111 @@ function adicionarPerdidoManual() {
   document.getElementById('manualData').value = '';
 
   alert('Produto perdido registrado e salvo online ✅');
+}
+
+let paginaPerdidos = 1;
+let paginaAchados = 1;
+const itensPorPagina = 10;
+
+/* filtro por dara grafico */
+
+
+function aplicarFiltroGrafico() {
+  const periodo = document.getElementById('filtroPeriodo').value;
+  const dataEscolhida = document.getElementById('filtroDataGrafico').value;
+  
+  let mapaDias = {};
+
+  // Função para agrupar dados por mês
+  const agruparPorMes = (data) => {
+    const mes = new Date(data).toISOString().slice(0, 7); // 'YYYY-MM'
+    return mes;
+  };
+
+  // Função para agrupar dados por semana
+  const agruparPorSemana = (data) => {
+    const date = new Date(data);
+    const startDate = new Date(date.setDate(date.getDate() - date.getDay())); // Domingo da semana
+    return startDate.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  };
+
+  // Função para agrupar por data específica
+  const agruparPorData = (data) => {
+    return data;
+  };
+
+  // Função para agrupar os dados com base no filtro selecionado
+  const agruparDados = (data, tipo) => {
+    switch (tipo) {
+      case 'semana':
+        return agruparPorSemana(data);
+      case 'mes':
+        return agruparPorMes(data);
+      case 'data':
+      default:
+        return agruparPorData(data);
+    }
+  };
+
+  // Filtra e agrupa os produtos perdidos
+  perdidos.forEach(p => {
+    const chave = agruparDados(p.data, periodo);
+    if (!mapaDias[chave]) mapaDias[chave] = { perdidos: 0, recuperados: 0 };
+    mapaDias[chave].perdidos += p.valorTotal;
+  });
+
+  // Filtra e agrupa os produtos achados
+  achados.forEach(a => {
+    const chave = agruparDados(a.dataAchado, periodo);
+    if (!mapaDias[chave]) mapaDias[chave] = { perdidos: 0, recuperados: 0 };
+    mapaDias[chave].recuperados += a.valorTotal;
+  });
+
+  const datas = Object.keys(mapaDias).sort();
+  criarGrafico(datas, mapaDias);
+}
+
+function criarGrafico(datas, mapaDias) {
+  if (graficoDias) graficoDias.destroy(); // Destruir gráfico anterior
+
+  graficoDias = new Chart(document.getElementById('graficoDias'), {
+    type: 'line',
+    data: {
+      labels: datas,
+      datasets: [
+        {
+          label: '🔴 Perdidos (R$)',
+          data: datas.map(d => mapaDias[d].perdidos),
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220,38,38,0.15)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: '🟢 Recuperados (R$)',
+          data: datas.map(d => mapaDias[d].recuperados),
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22,163,74,0.15)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: R$ ${ctx.parsed.y.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
 }
 
 
