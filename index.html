@@ -237,6 +237,37 @@ body {
 
 }
 
+/*logopgm*/
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  height: 40px;
+  max-width: 180px;
+  object-fit: contain;
+  background: #fff;       /* ajuda no dark mode */
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .logo {
+    height: 32px;
+    max-width: 140px;
+  }
+
+  header h1 {
+    font-size: 16px;
+  }
+}
+
+
+
+
 
 
 </style>
@@ -286,13 +317,25 @@ body {
 
 </div>
 
+<header class="header">
+  <div class="header-left">
+    <img
+      src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Logotipo_da_Pague_Menos.svg/500px-Logotipo_da_Pague_Menos.svg.png"
+      alt="Pague Menos"
+      class="logo"
+    />
 
+    <div class="header-text">
+      <h1>📦 Controle de Produtos Perdidos</h1>
+      <span>CD 03 • Jaboatão</span>
+    </div>
+  </div>
 
-
-<header>
-  <h1>📦 Dashboard – Produtos Perdidos e Achados</h1>
-  <button class="toggle-theme" onclick="alternarTema()">🌙 Dark</button>
+  <div class="header-actions">
+    <button class="toggle-theme" onclick="alternarTema()">🌙 Dark</button>
+  </div>
 </header>
+
 
 <div class="container">
 
@@ -302,9 +345,19 @@ body {
     <div class="card"><h3>Valor Perdido (R$)</h3><p class="negativo" id="kpiValorPerdido">0,00</p></div>
     <div class="card"><h3>Valor Recuperado (R$)</h3><p class="positivo" id="kpiValorAchado">0,00</p></div>
   </div>
+<div class="card">
+  <h3>Estoque Perdido (Qtd)</h3>
+  <p class="negativo" id="kpiEstoquePerdido">0</p>
+</div>
 
-  <div class="box">
-    <h3>📈 Evolução Diária – Perdidos x Recuperados</h3>
+<div class="card">
+  <h3>Estoque Recuperado (Qtd)</h3>
+  <p class="positivo" id="kpiEstoqueRecuperado">0</p>
+</div>
+
+ 
+ <div class="box">
+    <h3>📈 Evolução Diária Em Valores – Perdidos x Recuperados</h3>
     <canvas id="graficoDias" height="120"></canvas>
   </div>
 
@@ -318,10 +371,13 @@ body {
     <option value="mes">Mês</option>
   </select>
 
-  <label for="filtroDataGrafico">Data</label>
+<label for="filtroDataGrafico">Data</label>
   <input type="date" id="filtroDataGrafico">
 
   <button onclick="aplicarFiltroGrafico()">Aplicar Filtro</button>
+<div class="box">
+  <h3>📦 Evolução de Estoque – Perdidos x Recuperados</h3>
+  <canvas id="graficoEstoque" height="120"></canvas>
 </div>
 
 
@@ -423,6 +479,8 @@ body {
 
 </div>
 
+
+
 <script>
 
 const API_URL = "https://api-produtos-fbb4.onrender.com/dados";
@@ -510,6 +568,8 @@ let produtosBase = [];
 let perdidos = [];
 let achados = [];
 let graficoDias = null;
+let graficoEstoque = null;
+
 
 function parseValorBR(valor) {
   if (!valor) return 0;
@@ -528,6 +588,9 @@ async function carregarDados() {
 
   render();
   criarGraficos();
+ criarGraficoEstoque();
+
+
 }
 
 async function salvar() {
@@ -539,6 +602,9 @@ async function salvar() {
 
   render();
   criarGraficos();
+criarGraficoEstoque();
+
+
 }
 
 
@@ -565,6 +631,82 @@ document.getElementById('fileProdutos').addEventListener('change', function (e) 
   };
   reader.readAsArrayBuffer(file);
 });
+
+
+
+/* ================= grafico estoque ================= */
+
+function criarGraficoEstoque() {
+  const mapaDias = {};
+
+  // 🔴 Perdidos (quantidade)
+  perdidos.forEach(p => {
+    if (!p.data) return;
+
+    if (!mapaDias[p.data]) {
+      mapaDias[p.data] = { perdidos: 0, recuperados: 0 };
+    }
+
+    mapaDias[p.data].perdidos += Number(p.quantidade) || 0;
+  });
+
+  // 🟢 Recuperados (quantidade)
+  achados.forEach(a => {
+    if (!a.dataAchado) return;
+
+    if (!mapaDias[a.dataAchado]) {
+      mapaDias[a.dataAchado] = { perdidos: 0, recuperados: 0 };
+    }
+
+    mapaDias[a.dataAchado].recuperados += Number(a.quantidade) || 0;
+  });
+
+  const datas = Object.keys(mapaDias).sort(
+    (a, b) => new Date(a) - new Date(b)
+  );
+
+  if (graficoEstoque) graficoEstoque.destroy();
+
+  graficoEstoque = new Chart(document.getElementById('graficoEstoque'), {
+    type: 'line',
+    data: {
+      labels: datas,
+      datasets: [
+        {
+          label: '📦 Perdidos (Qtd)',
+          data: datas.map(d => mapaDias[d].perdidos),
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220,38,38,0.15)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: '📦 Recuperados (Qtd)',
+          data: datas.map(d => mapaDias[d].recuperados),
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22,163,74,0.15)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 }
+        }
+      }
+    }
+  });
+}
+
+
+
+
+
+
 
 /* ================= CADASTRO ================= */
 function adicionarPerdido() {
@@ -715,6 +857,14 @@ function render() {
 
   document.getElementById('kpiValorAchado').textContent =
     achados.reduce((s, a) => s + a.valorTotal, 0).toFixed(2);
+
+// 📦 Estoque Perdido (quantidade total)
+document.getElementById('kpiEstoquePerdido').textContent =
+  perdidos.reduce((s, p) => s + (Number(p.quantidade) || 0), 0);
+
+// 📦 Estoque Recuperado (quantidade total)
+document.getElementById('kpiEstoqueRecuperado').textContent =
+  achados.reduce((s, a) => s + (Number(a.quantidade) || 0), 0);
 }
 
 
